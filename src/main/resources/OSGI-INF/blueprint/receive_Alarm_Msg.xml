@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+       xmlns:camel="http://camel.apache.org/schema/blueprint"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+       http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+
+  
+  <!--*************** this is the JDBC data sources for development test ******************************************************-->
+ 
+
+
+<bean id="BSM-db" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+  <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+  <property name="url" value="jdbc:sqlserver://localhost;databaseName=BSM_LATLON"/>
+  <property name="username" value="sa"/>
+  <property name="password" value="September00"/>
+</bean>
+
+<!--*************** this is the JDBC data source for development test *******************************************************-->
+
+  
+
+
+<bean id="sqlTgt" class="org.apache.camel.component.sql.SqlComponent">
+  <property name="dataSource" ref="BSM-db"/>
+</bean>
+
+
+<!--*************** this is the JMS data source for AMQ *******************************************************-->
+<!--  
+<bean id="jmsConnectionFactory" 
+   class="org.apache.activemq.ActiveMQConnectionFactory">
+   <property name="brokerURL" value="tcp://localhost:61616" />
+   <property name="userName" value="admin" />
+   <property name="password" value="admin" />
+</bean>
+ 
+<bean id="pooledConnectionFactory" 
+   class="org.apache.activemq.pool.PooledConnectionFactory" init-method="start" destroy-method="stop">
+   <property name="maxConnections" value="8" />
+   <property name="connectionFactory" ref="jmsConnectionFactory" />
+</bean>
+
+<bean id="jmsConfig" 
+   class="org.apache.camel.component.jms.JmsConfiguration">
+   <property name="connectionFactory" ref="pooledConnectionFactory"/>
+   <property name="concurrentConsumers" value="10"/>
+</bean>
+ 
+ --> 
+ 
+<reference id="pooledConnectionFactory" interface="javax.jms.ConnectionFactory" availability="mandatory" filter="(name=AMQBR)"/> 
+ 
+<bean id="activemq" 
+    class="org.apache.activemq.camel.component.ActiveMQComponent">
+    <property name="connectionFactory">
+            <reference interface="javax.jms.ConnectionFactory" availability="mandatory" filter="name=AMQBR"/>
+    </property>
+</bean>
+  
+  
+ <camelContext trace="false" xmlns="http://camel.apache.org/schema/blueprint">
+  <propertyPlaceholder location="classpath:sql.properties" id="properties"/>
+  <route id="LatLon Alarm Handler">
+    <from uri="activemq:queue:LatLonAlarm" id="Get Alarm Message">
+      <description/>
+    </from>
+    <multicast id="Check Alarm Type">
+      <filter id="Digital Alarm 1">
+        <simple>${body[MESSAGE_TYPE_ID]} == 4</simple>
+        <log message="Alarm from Unit: ${body[UNIT_ID]}" loggingLevel="INFO" id="Log Alarm 1"/>
+      </filter>
+      <filter id="Digital Alarm 2">
+        <simple>${body[MESSAGE_TYPE_ID]} == 5</simple>
+        <log message="Alarm from Unit: ${body[UNIT_ID]}" loggingLevel="INFO" id="Log Alarm 2"/>
+      </filter>
+    </multicast>
+  </route>
+</camelContext>
+</blueprint>
