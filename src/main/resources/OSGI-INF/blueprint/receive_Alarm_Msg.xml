@@ -6,25 +6,6 @@
        http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
 
   
-  <!--*************** this is the JDBC data sources for development test ******************************************************-->
- 
-
-
-<bean id="BSM-db" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-  <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
-  <property name="url" value="jdbc:sqlserver://localhost;databaseName=BSM_LATLON"/>
-  <property name="username" value="sa"/>
-  <property name="password" value="September00"/>
-</bean>
-
-<!--*************** this is the JDBC data source for development test *******************************************************-->
-
-  
-
-
-<bean id="sqlTgt" class="org.apache.camel.component.sql.SqlComponent">
-  <property name="dataSource" ref="BSM-db"/>
-</bean>
 
 
 <!--*************** this is the JMS data source for AMQ *******************************************************-->
@@ -48,10 +29,10 @@
    <property name="concurrentConsumers" value="10"/>
 </bean>
  
- --> 
+
  
 <reference id="pooledConnectionFactory" interface="javax.jms.ConnectionFactory" availability="mandatory" filter="(name=AMQBR)"/> 
- 
+ -->  
 <bean id="activemq" 
     class="org.apache.activemq.camel.component.ActiveMQComponent">
     <property name="connectionFactory">
